@@ -43,5 +43,32 @@ namespace DataAccess.Repositories
             }
             await _context.SaveChangesAsync();
         }
+
+        public async Task<bool> IsAccountExistAsync(Account account)
+        {
+            return await _context.Accounts!.AnyAsync(a => a.Name == account.Name);
+        }
+
+        public async Task LinkContactAsync(Account account, Contact contact)
+        {
+            if (!await _context.Contacts!.AnyAsync(c => c.Email == contact.Email))
+            {
+                contact.AccountId = _context.Accounts!
+                    .SingleOrDefault(a => a.Name == account.Name)!
+                    .Id;
+
+                await _context.Contacts!.AddAsync(contact);
+            }
+            else
+            {
+                _context.Contacts!
+                    .SingleOrDefault(c => c.Email == contact.Email)!
+                    .AccountId = _context.Accounts!
+                    .SingleOrDefault(a => a.Name == account.Name)!
+                    .Id;
+
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }
